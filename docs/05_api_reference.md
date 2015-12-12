@@ -59,7 +59,9 @@
 
 <a name="new_parse5+SAXParser_new"></a>
 #### new SAXParser(options)
-Streaming [SAX](https://en.wikipedia.org/wiki/Simple_API_for_XML)-style HTML parser.A [transform stream](https://nodejs.org/api/stream.html#stream_class_stream_transform)(which means you can pipe *through* it, see example).
+Streaming [SAX](https://en.wikipedia.org/wiki/Simple_API_for_XML)-style HTML parser.
+A [transform stream](https://nodejs.org/api/stream.html#stream_class_stream_transform)
+(which means you can pipe *through* it, see example).
 
 
 | Param | Type | Description |
@@ -68,16 +70,51 @@ Streaming [SAX](https://en.wikipedia.org/wiki/Simple_API_for_XML)-style HTML par
 
 **Example**  
 ```js
-var parse5 = require('parse5');var http = require('http');var fs = require('fs');var file = fs.createWriteStream('/home/google.com.html');var parser = new parse5.SAXParser();parser.on('text', function(text) { // Handle page text content ...});http.get('http://google.com', function(res) { // SAXParser is the Transform stream, which means you can pipe // through it. So, you can analyze page content and, e.g., save it // to the file at the same time: res.pipe(parser).pipe(file);});
+var parse5 = require('parse5');
+var http = require('http');
+var fs = require('fs');
+
+var file = fs.createWriteStream('/home/google.com.html');
+var parser = new parse5.SAXParser();
+
+parser.on('text', function(text) {
+ // Handle page text content
+ ...
+});
+
+http.get('http://google.com', function(res) {
+ // SAXParser is the Transform stream, which means you can pipe
+ // through it. So, you can analyze page content and, e.g., save it
+ // to the file at the same time:
+ res.pipe(parser).pipe(file);
+});
 ```
 <a name="parse5+SAXParser+stop"></a>
 #### saxParser.stop()
-Stops parsing. Useful if you want the parser to stop consuming CPU time once you've obtained the desired infofrom the input stream. Doesn't prevent piping, so that data will flow through the parser as usual.
+Stops parsing. Useful if you want the parser to stop consuming CPU time once you've obtained the desired info
+from the input stream. Doesn't prevent piping, so that data will flow through the parser as usual.
 
 **Kind**: instance method of <code>[SAXParser](#parse5+SAXParser)</code>  
 **Example**  
 ```js
-var parse5 = require('parse5');var http = require('http');var fs = require('fs');var file = fs.createWriteStream('/home/google.com.html');var parser = new parse5.SAXParser();parser.on('doctype', function(name, publicId, systemId) { // Process doctype info ans stop parsing ... parser.stop();});http.get('http://google.com', function(res) { // Despite the fact that parser.stop() was called whole // content of the page will be written to the file res.pipe(parser).pipe(file);});
+var parse5 = require('parse5');
+var http = require('http');
+var fs = require('fs');
+
+var file = fs.createWriteStream('/home/google.com.html');
+var parser = new parse5.SAXParser();
+
+parser.on('doctype', function(name, publicId, systemId) {
+ // Process doctype info ans stop parsing
+ ...
+ parser.stop();
+});
+
+http.get('http://google.com', function(res) {
+ // Despite the fact that parser.stop() was called whole
+ // content of the page will be written to the file
+ res.pipe(parser).pipe(file);
+});
 ```
 <a name="parse5+SAXParser+event_startTag"></a>
 #### "startTag" (name, attributes, selfClosing, [location])
@@ -150,7 +187,8 @@ Raised then parser encounters text content.
 
 <a name="new_parse5+ParserStream_new"></a>
 #### new ParserStream(options)
-Streaming HTML parser with scripting support.A [writable stream](https://nodejs.org/api/stream.html#stream_class_stream_writable).
+Streaming HTML parser with scripting support.
+A [writable stream](https://nodejs.org/api/stream.html#stream_class_stream_writable).
 
 
 | Param | Type | Description |
@@ -159,7 +197,19 @@ Streaming HTML parser with scripting support.A [writable stream](https://nodejs
 
 **Example**  
 ```js
-var parse5 = require('parse5');var http = require('http');// Fetch the google.com content and obtain it's <body> nodehttp.get('http://google.com', function(res) { var parser = new parse5.ParserStream(); parser.on('finish', function() {     var body = parser.document.childNodes[0].childNodes[1]; }); res.pipe(parser);});
+var parse5 = require('parse5');
+var http = require('http');
+
+// Fetch the google.com content and obtain it's <body> node
+http.get('http://google.com', function(res) {
+ var parser = new parse5.ParserStream();
+
+ parser.on('finish', function() {
+     var body = parser.document.childNodes[0].childNodes[1];
+ });
+
+ res.pipe(parser);
+});
 ```
 <a name="parse5+ParserStream+document"></a>
 #### parserStream.document : <code>ASTNode.&lt;document&gt;</code>
@@ -168,7 +218,9 @@ The resulting document node.
 **Kind**: instance property of <code>[ParserStream](#parse5+ParserStream)</code>  
 <a name="parse5+ParserStream+event_script"></a>
 #### "script" (scriptElement, documentWrite(html), resume)
-Raised then parser encounters a `<script>` element.If this event has listeners, parsing will be suspended once it is emitted.So, if `<script>` has the `src` attribute, you can fetch it, execute and then resume parsing just like browsers do.
+Raised then parser encounters a `<script>` element.
+If this event has listeners, parsing will be suspended once it is emitted.
+So, if `<script>` has the `src` attribute, you can fetch it, execute and then resume parsing just like browsers do.
 
 **Kind**: event emitted by <code>[ParserStream](#parse5+ParserStream)</code>  
 
@@ -180,7 +232,24 @@ Raised then parser encounters a `<script>` element.If this event has listeners,
 
 **Example**  
 ```js
-var parse = require('parse5');var http = require('http');var parser = new parse5.ParserStream();parser.on('script', function(scriptElement, documentWrite, resume) {  var src = parse5.treeAdapters.default.getAttrList(scriptElement)[0].value;  http.get(src, function(res) {     // Fetch the script content, execute it with DOM built around `parser.document` and     // `document.write` implemented using `documentWrite`.     ...     // Then resume parsing.     resume();  });});parser.end('<script src="example.com/script.js"></script>');
+var parse = require('parse5');
+var http = require('http');
+
+var parser = new parse5.ParserStream();
+
+parser.on('script', function(scriptElement, documentWrite, resume) {
+  var src = parse5.treeAdapters.default.getAttrList(scriptElement)[0].value;
+
+  http.get(src, function(res) {
+     // Fetch the script content, execute it with DOM built around `parser.document` and
+     // `document.write` implemented using `documentWrite`.
+     ...
+     // Then resume parsing.
+     resume();
+  });
+});
+
+parser.end('<script src="example.com/script.js"></script>');
 ```
 <a name="parse5+SerializerStream"></a>
 ### parse5.SerializerStream ⇐ <code>stream.Readable</code>
@@ -355,14 +424,14 @@ var bodyInnerHtml = parse5.serialize(document.childNodes[0].childNodes[1]);
   * [.createDocument()](#TreeAdapter.createDocument) ⇒ <code>ASTNode.&lt;Document&gt;</code>
   * [.createDocumentFragment()](#TreeAdapter.createDocumentFragment) ⇒ <code>ASTNode.&lt;DocumentFragment&gt;</code>
   * [.createElement(tagName, namespaceURI, attrs)](#TreeAdapter.createElement) ⇒ <code>ASTNode.&lt;Element&gt;</code>
-  * [.createElement(data)](#TreeAdapter.createElement) ⇒ <code>ASTNode.&lt;CommentNode&gt;</code>
+  * [.createCommentNode(data)](#TreeAdapter.createCommentNode) ⇒ <code>ASTNode.&lt;CommentNode&gt;</code>
   * [.appendChild(parentNode, newNode)](#TreeAdapter.appendChild)
   * [.insertBefore(parentNode, newNode, referenceNode)](#TreeAdapter.insertBefore)
   * [.setTemplateContent(templateElement, contentTemplate)](#TreeAdapter.setTemplateContent)
-  * [.getTemplateContent(templateElement)](#TreeAdapter.getTemplateContent) ⇒ <code>Boolean</code>
+  * [.getTemplateContent(templateElement)](#TreeAdapter.getTemplateContent) ⇒ <code>ASTNode.&lt;DocumentFragment&gt;</code>
   * [.setDocumentType(document, name, publicId, systemId)](#TreeAdapter.setDocumentType)
   * [.setQuirksMode(document)](#TreeAdapter.setQuirksMode)
-  * [.setQuirksMode(document)](#TreeAdapter.setQuirksMode) ⇒ <code>Boolean</code>
+  * [.isQuirksMode(document)](#TreeAdapter.isQuirksMode) ⇒ <code>Boolean</code>
   * [.detachNode(node)](#TreeAdapter.detachNode)
   * [.insertText(parentNode, text)](#TreeAdapter.insertText)
   * [.insertTextBefore(parentNode, text, referenceNode)](#TreeAdapter.insertTextBefore)
@@ -374,7 +443,7 @@ var bodyInnerHtml = parse5.serialize(document.childNodes[0].childNodes[1]);
   * [.getTagName(element)](#TreeAdapter.getTagName) ⇒ <code>String</code>
   * [.getNamespaceURI(element)](#TreeAdapter.getNamespaceURI) ⇒ <code>String</code>
   * [.getTextNodeContent(textNode)](#TreeAdapter.getTextNodeContent) ⇒ <code>String</code>
-  * [.getTextNodeContent(commentNode)](#TreeAdapter.getTextNodeContent) ⇒ <code>String</code>
+  * [.getCommentNodeContent(commentNode)](#TreeAdapter.getCommentNodeContent) ⇒ <code>String</code>
   * [.getDocumentTypeNodeName(doctypeNode)](#TreeAdapter.getDocumentTypeNodeName) ⇒ <code>String</code>
   * [.getDocumentTypeNodePublicId(doctypeNode)](#TreeAdapter.getDocumentTypeNodePublicId) ⇒ <code>String</code>
   * [.getDocumentTypeNodeSystemId(doctypeNode)](#TreeAdapter.getDocumentTypeNodeSystemId) ⇒ <code>String</code>
@@ -411,8 +480,8 @@ Creates an element node.
 | namespaceURI | <code>String</code> | Namespace of the element. |
 | attrs | <code>Array</code> | Attribute name-value pair array.                         Foreign attributes may contain `namespace` and `prefix` fields as well. |
 
-<a name="TreeAdapter.createElement"></a>
-### TreeAdapter.createElement(data) ⇒ <code>ASTNode.&lt;CommentNode&gt;</code>
+<a name="TreeAdapter.createCommentNode"></a>
+### TreeAdapter.createCommentNode(data) ⇒ <code>ASTNode.&lt;CommentNode&gt;</code>
 Creates a comment node.
 
 **Kind**: static method of <code>[TreeAdapter](#TreeAdapter)</code>  
@@ -461,10 +530,11 @@ Sets the <template> element content element.
 | contentTemplate | <code>ASTNode.&lt;DocumentFragment&gt;</code> | Content element. |
 
 <a name="TreeAdapter.getTemplateContent"></a>
-### TreeAdapter.getTemplateContent(templateElement) ⇒ <code>Boolean</code>
+### TreeAdapter.getTemplateContent(templateElement) ⇒ <code>ASTNode.&lt;DocumentFragment&gt;</code>
 Returns the <template> element content element.
 
 **Kind**: static method of <code>[TreeAdapter](#TreeAdapter)</code>  
+**Returns**: <code>ASTNode.&lt;DocumentFragment&gt;</code> - contentTemplate  
 **See**: [default implementation.](https://github.com/inikulin/parse5/blob/tree-adapter-docs-rev/lib/tree_adapters/default.js#L166)  
 
 | Param | Type | Description |
@@ -498,8 +568,8 @@ Sets the document's quirks mode flag.
 | --- | --- | --- |
 | document | <code>ASTNode.&lt;Document&gt;</code> | Document node. |
 
-<a name="TreeAdapter.setQuirksMode"></a>
-### TreeAdapter.setQuirksMode(document) ⇒ <code>Boolean</code>
+<a name="TreeAdapter.isQuirksMode"></a>
+### TreeAdapter.isQuirksMode(document) ⇒ <code>Boolean</code>
 Determines if the document's quirks mode flag is set.
 
 **Kind**: static method of <code>[TreeAdapter](#TreeAdapter)</code>  
@@ -645,8 +715,8 @@ Returns the given text node's content.
 | --- | --- | --- |
 | textNode | <code>ASTNode.&lt;Text&gt;</code> | Text node. |
 
-<a name="TreeAdapter.getTextNodeContent"></a>
-### TreeAdapter.getTextNodeContent(commentNode) ⇒ <code>String</code>
+<a name="TreeAdapter.getCommentNodeContent"></a>
+### TreeAdapter.getCommentNodeContent(commentNode) ⇒ <code>String</code>
 Returns the given comment node's content.
 
 **Kind**: static method of <code>[TreeAdapter](#TreeAdapter)</code>  
